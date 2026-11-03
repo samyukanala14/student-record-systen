@@ -1,0 +1,1915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Record Management System | Advanced Data Structures Lab Portal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+    
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
+    }
+
+    code, pre, .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar { width: 7px; height: 7px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+    /* Interactive Tree Styling */
+    .tree-node-group {
+      transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+    }
+    .tree-node-group:hover {
+      transform: scale(1.1);
+    }
+    .tree-node-group:hover .node-circle {
+      stroke: #2563eb;
+      stroke-width: 3.5px;
+      filter: drop-shadow(0 4px 8px rgba(37, 99, 235, 0.25));
+    }
+
+    .node-highlighted .node-circle {
+      fill: #fef08a !important;
+      stroke: #ca8a04 !important;
+      stroke-width: 4px !important;
+      animation: pulseGlow 1.2s infinite alternate;
+    }
+
+    .node-target .node-circle {
+      fill: #bbf7d0 !important;
+      stroke: #16a34a !important;
+      stroke-width: 4px !important;
+      animation: targetGlow 1.2s infinite alternate;
+    }
+
+    @keyframes pulseGlow {
+      from { filter: drop-shadow(0 0 2px #ca8a04); }
+      to { filter: drop-shadow(0 0 10px #eab308); }
+    }
+
+    @keyframes targetGlow {
+      from { filter: drop-shadow(0 0 3px #16a34a); }
+      to { filter: drop-shadow(0 0 12px #22c55e); }
+    }
+
+    .tree-edge {
+      stroke: #cbd5e1;
+      stroke-width: 2.5px;
+      stroke-linecap: round;
+      transition: stroke 0.3s ease, stroke-width 0.3s ease;
+    }
+    .tree-edge-active {
+      stroke: #eab308 !important;
+      stroke-width: 4px !important;
+    }
+
+    /* Print styling for official college laboratory report */
+    @media print {
+      header, .no-print, #logDrawerContainer, #codeModal, #studentModalDialog, #rotationInfoBanner { display: none !important; }
+      body { background: white !important; color: black !important; font-size: 11pt; }
+      .print-only { display: block !important; }
+      .page-break { page-break-before: always; }
+      .shadow-sm, .shadow-md, .shadow-lg, .shadow-xs, .shadow-2xs { box-shadow: none !important; }
+      table { border-collapse: collapse !important; width: 100% !important; }
+      th, td { border: 1px solid #cbd5e1 !important; padding: 6px 8px !important; }
+    }
+    .print-only { display: none; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased selection:bg-blue-600 selection:text-white">
+
+  <!-- ========================================================================= -->
+  <!-- 1. ACADEMIC HEADER WITH DEPARTMENT IDENTITY -->
+  <!-- ========================================================================= -->
+  <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-40 shadow-sm no-print">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      
+      <!-- College & Lab Identity -->
+      <div class="flex items-center space-x-3.5">
+        <div class="h-10 w-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold shadow-md shadow-blue-500/20 text-lg">
+          <i class="fa-solid fa-graduation-cap"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-base font-bold tracking-tight text-white">Student Record Management System</h1>
+            <span class="text-[11px] px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 font-mono font-medium border border-blue-500/30">C++17 Core Engine</span>
+          </div>
+          <p class="text-xs text-slate-400">Department of Computer Science &amp; Engineering &bull; Advanced Data Structures Lab (CS-302)</p>
+        </div>
+      </div>
+
+      <!-- Quick Action Utilities -->
+      <div class="flex items-center space-x-2">
+        <!-- Inspect C++ Source Modal Trigger -->
+        <button onclick="openCodeModal()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition" title="Inspect C++ Class Implementations">
+          <i class="fa-solid fa-code text-blue-400"></i>
+          <span class="hidden md:inline">Inspect</span> <strong>C++ Source</strong>
+        </button>
+
+        <!-- Print College Sheet -->
+        <button onclick="window.print()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition" title="Print Official College Laboratory Sheet">
+          <i class="fa-solid fa-print text-slate-300"></i>
+          <span class="hidden sm:inline">Print Report</span>
+        </button>
+
+        <!-- Export students.txt -->
+        <button onclick="exportStudentsFile()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition" title="Download students.txt formatted for C++ fstream">
+          <i class="fa-solid fa-download text-emerald-400"></i>
+          <span class="hidden sm:inline">Export</span> <strong>students.txt</strong>
+        </button>
+
+        <!-- Import file -->
+        <label class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition" title="Import records from students.txt">
+          <i class="fa-solid fa-upload text-amber-400"></i>
+          <span class="hidden sm:inline">Import</span>
+          <input type="file" id="importFileInput" accept=".txt,.csv" onchange="importStudentsFile(event)" class="hidden">
+        </label>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- 2. ACADEMIC METRICS & DATA STRUCTURE KPI BANNER -->
+  <!-- ========================================================================= -->
+  <div class="bg-white border-b border-slate-200 shadow-xs no-print">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 divide-x divide-slate-100 text-center">
+        
+        <div>
+          <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Active Enrollment</span>
+          <p id="statTotalCount" class="text-2xl font-bold text-slate-900 mt-0.5">8</p>
+          <span class="text-[11px] text-blue-600 font-medium">Synced in BST, AVL &amp; Hash</span>
+        </div>
+
+        <div>
+          <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Class Average Marks</span>
+          <p id="statAverageMarks" class="text-2xl font-bold text-blue-700 mt-0.5">87.8%</p>
+          <span id="statAverageGrade" class="text-[11px] text-emerald-600 font-medium">Rating: Excellent</span>
+        </div>
+
+        <div>
+          <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Rank 1 (Merge Sort)</span>
+          <p id="statTopRanker" class="text-sm font-bold text-slate-800 mt-1 truncate px-2">Ananya Iyer (95.75%)</p>
+          <span class="text-[11px] text-slate-400 font-mono">ID: 104 &bull; CSE Dept</span>
+        </div>
+
+        <div>
+          <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Hash Load Factor (&alpha; = N / 11)</span>
+          <p id="statLoadFactor" class="text-2xl font-bold text-amber-600 mt-0.5">0.73</p>
+          <span class="text-[11px] text-emerald-600 font-medium">Optimal Status (&alpha; &le; 0.75)</span>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- PRINT REPORT HEADER (VISIBLE ONLY ON PRINT) -->
+  <div class="print-only p-6 border-b-2 border-slate-900 mb-4">
+    <div class="text-center">
+      <h2 class="text-2xl font-bold uppercase tracking-wide">University College of Engineering</h2>
+      <h3 class="text-base font-semibold text-slate-700">Department of Computer Science &amp; Engineering</h3>
+      <p class="text-xs text-slate-500 mt-1">CS-302: Advanced Data Structures &amp; Algorithms Laboratory &bull; Official Student Performance Evaluation Sheet</p>
+      <div class="mt-3 inline-block bg-slate-100 px-4 py-1.5 rounded border border-slate-300 text-xs font-mono font-bold">
+        VERIFIED SYSTEM STATE &bull; BST &amp; AVL (KEYED ON MARKS) &bull; HASH TABLE (ID MOD 11) &bull; MERGE SORT
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 3. MAIN WORKSPACE CONTAINER -->
+  <!-- ========================================================================= -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-5">
+
+    <!-- NAVIGATION TABS -->
+    <div class="flex items-center justify-between border-b border-slate-200 pb-px no-print">
+      <div class="flex space-x-1 sm:space-x-3 overflow-x-auto">
+        <button onclick="switchView('records')" id="tabBtn-records" class="tab-button active px-4 py-2.5 text-sm font-semibold border-b-2 border-blue-600 text-blue-600 flex items-center gap-2">
+          <i class="fa-solid fa-table-list"></i>
+          <span>Student Registry</span>
+        </button>
+        <button onclick="switchView('tree')" id="tabBtn-tree" class="tab-button px-4 py-2.5 text-sm font-medium border-b-2 border-transparent text-slate-600 hover:text-slate-900 flex items-center gap-2">
+          <i class="fa-solid fa-sitemap"></i>
+          <span>Marks-Based Tree Laboratory (AVL vs BST)</span>
+        </button>
+        <button onclick="switchView('hash')" id="tabBtn-hash" class="tab-button px-4 py-2.5 text-sm font-medium border-b-2 border-transparent text-slate-600 hover:text-slate-900 flex items-center gap-2">
+          <i class="fa-solid fa-hashtag"></i>
+          <span>Hash Table Chaining (O(1))</span>
+        </button>
+        <button onclick="switchView('mergesort')" id="tabBtn-mergesort" class="tab-button px-4 py-2.5 text-sm font-medium border-b-2 border-transparent text-slate-600 hover:text-slate-900 flex items-center gap-2">
+          <i class="fa-solid fa-arrow-down-wide-short"></i>
+          <span>Merit Ranking (Merge Sort)</span>
+        </button>
+      </div>
+
+      <!-- Quick Reset / Demo Seed Button -->
+      <button onclick="resetDefaultData()" class="hidden md:flex items-center gap-1.5 text-xs text-slate-500 hover:text-blue-700 transition" title="Restore original 8 college student records from students.txt">
+        <i class="fa-solid fa-rotate-left text-xs"></i>
+        <span>Reset Sample Records</span>
+      </button>
+    </div>
+
+    <!-- NOTIFICATION ALERT BANNER -->
+    <div id="statusAlert" class="hidden p-3.5 rounded-xl text-sm border flex items-center justify-between shadow-xs transition-all no-print">
+      <div class="flex items-center gap-2.5">
+        <i id="statusIcon" class="fa-solid fa-circle-info text-base"></i>
+        <span id="statusMessage" class="font-medium"></span>
+      </div>
+      <button onclick="document.getElementById('statusAlert').classList.add('hidden')" class="text-slate-400 hover:text-slate-700">
+        <i class="fa-solid fa-xmark text-sm"></i>
+      </button>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 1: STUDENT REGISTRY (TABLE, SEARCH, FILTERS) -->
+    <!-- ========================================================================= -->
+    <section id="view-records" class="space-y-4">
+      
+      <!-- Filter Bar & Search Utility -->
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3 no-print">
+        
+        <!-- Live Search -->
+        <div class="flex items-center gap-2 flex-1 max-w-lg">
+          <div class="relative w-full">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+            <input type="text" id="inputSearch" placeholder="Search by Roll No, Student Name, or Dept..." 
+                   onkeyup="handleLiveSearch()"
+                   class="w-full pl-8 pr-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent">
+          </div>
+          <button onclick="executeHashLookup()" class="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow-xs transition flex items-center gap-1.5 whitespace-nowrap" title="Direct O(1) Hash Table lookup by Student ID">
+            <i class="fa-solid fa-bolt text-amber-300"></i>
+            <span>Hash O(1)</span>
+          </button>
+          <button onclick="clearSearch()" class="px-2.5 py-2 text-xs text-slate-500 hover:text-slate-900 underline font-medium">
+            Clear
+          </button>
+        </div>
+
+        <!-- Department Pills & Action Buttons -->
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- Department Filter Pills -->
+          <div class="flex items-center bg-slate-100 p-1 rounded-lg text-xs font-medium text-slate-600">
+            <button onclick="filterDept('ALL', this)" class="dept-pill px-2.5 py-1 rounded-md bg-white shadow-xs text-blue-700 font-semibold">All</button>
+            <button onclick="filterDept('CSE', this)" class="dept-pill px-2.5 py-1 rounded-md hover:text-slate-900">CSE</button>
+            <button onclick="filterDept('ECE', this)" class="dept-pill px-2.5 py-1 rounded-md hover:text-slate-900">ECE</button>
+            <button onclick="filterDept('MECH', this)" class="dept-pill px-2.5 py-1 rounded-md hover:text-slate-900">MECH</button>
+            <button onclick="filterDept('IT', this)" class="dept-pill px-2.5 py-1 rounded-md hover:text-slate-900">IT</button>
+          </div>
+
+          <!-- Sorting Mode Dropdown -->
+          <select id="selectSortMode" onchange="handleSortSelect()" class="text-xs border border-slate-300 rounded-lg px-3 py-2 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-600 font-medium">
+            <option value="default">Default (Insertion Order)</option>
+            <option value="marks_asc">Marks Ascending (Tree Inorder O(N))</option>
+            <option value="marks_desc">Marks: High to Low (Merge Sort)</option>
+            <option value="id_asc">ID Ascending (Roll No Order)</option>
+          </select>
+
+          <!-- Add Student Button -->
+          <button onclick="openStudentModal('add')" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-xs flex items-center gap-1.5 transition">
+            <i class="fa-solid fa-user-plus"></i>
+            <span>Enroll Student</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Students Table -->
+      <div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm text-slate-700">
+            <thead class="bg-slate-50 text-slate-600 text-xs font-semibold uppercase tracking-wider border-b border-slate-200">
+              <tr>
+                <th class="py-3 px-4">Roll No / ID</th>
+                <th class="py-3 px-4">Student Name</th>
+                <th class="py-3 px-4">Department</th>
+                <th class="py-3 px-4">Year</th>
+                <th class="py-3 px-4">Marks (%)</th>
+                <th class="py-3 px-4">Performance Grade</th>
+                <th class="py-3 px-4">College Email</th>
+                <th class="py-3 px-4 text-right no-print">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="studentRecordsTableBody" class="divide-y divide-slate-100 font-medium"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Table Bottom Summary -->
+      <div class="flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 px-1 pt-1">
+        <span id="recordCountDisplay">Displaying 8 student records</span>
+        <span class="font-mono text-[11px] text-slate-400">Data Synchronized with: Marks-Keyed AVL Tree &bull; BST &bull; Hash Table (11 buckets) &bull; Merge Sort</span>
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 2: MARKS-BASED TREE LABORATORY (AVL VS BST & ROTATION PLAYGROUND) -->
+    <!-- ========================================================================= -->
+    <section id="view-tree" class="hidden space-y-4">
+      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-xs">
+        
+        <!-- Header Controls & Architecture Toggle -->
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between pb-4 border-b border-slate-200 gap-3">
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                <i class="fa-solid fa-sitemap text-blue-600"></i>
+                <span id="treeModeHeading">Self-Balancing AVL Tree (Keyed on Student Marks %)</span>
+              </h2>
+              <span id="treeBadgeStatus" class="px-2.5 py-0.5 rounded text-[11px] font-mono font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                Key: Marks (%) &bull; O(log N)
+              </span>
+            </div>
+            <p class="text-xs text-slate-500 mt-0.5">
+              Nodes are ordered and balanced based on <strong class="text-slate-800">Academic Marks (%)</strong>. Inorder traversal (<code class="font-mono text-blue-700">Left &rarr; Root &rarr; Right</code>) yields students sorted from lowest to highest marks!
+            </p>
+          </div>
+
+          <!-- Tree View Controls & Architecture Switcher -->
+          <div class="flex flex-wrap items-center gap-2">
+            
+            <!-- Architecture Switcher (AVL vs BST) -->
+            <div class="inline-flex rounded-lg border border-slate-300 p-0.5 bg-slate-100 text-xs font-semibold">
+              <button onclick="setTreeArchitecture('AVL')" id="btnArchAVL" class="px-3 py-1.5 rounded-md bg-white text-blue-700 shadow-xs transition">
+                AVL Tree (Balanced by Marks)
+              </button>
+              <button onclick="setTreeArchitecture('BST')" id="btnArchBST" class="px-3 py-1.5 rounded-md text-slate-600 hover:text-slate-900 transition">
+                Standard BST (Unbalanced)
+              </button>
+            </div>
+
+            <!-- Trace Search Path Input -->
+            <div class="flex items-center gap-1">
+              <input type="number" id="inputTraceSearch" step="0.01" placeholder="Marks (e.g. 88.5)..." class="w-32 text-xs border border-slate-300 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-600">
+              <button onclick="traceTreeSearchPath()" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-semibold" title="Animate search path from root to target mark">
+                <i class="fa-solid fa-location-crosshairs text-amber-300 mr-1"></i>Trace
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ROTATION PLAYGROUND (DEMONSTRATES LL, RR, LR, RL TO EXAMINER BASED ON MARKS) -->
+        <div class="my-3 p-3.5 bg-slate-50 border border-slate-200 rounded-xl">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+            <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+              <i class="fa-solid fa-rotate text-blue-600"></i>
+              <span>Marks-Keyed AVL Rotation Playground (Live Examiner Viva Demo)</span>
+            </span>
+            <span class="text-[11px] text-slate-500 font-mono">Observe how inserting marks triggers balance rotations</span>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <button onclick="triggerRotationDemo('LL')" class="px-2.5 py-2 bg-white hover:bg-blue-50 border border-slate-300 hover:border-blue-300 rounded-lg text-xs font-semibold text-slate-700 hover:text-blue-700 transition flex flex-col items-center">
+              <span class="font-bold text-blue-700">LL Rotation (Marks &darr;)</span>
+              <span class="text-[10px] text-slate-500 font-mono mt-0.5">Insert 98% &rarr; 84% &rarr; 70%</span>
+            </button>
+            <button onclick="triggerRotationDemo('RR')" class="px-2.5 py-2 bg-white hover:bg-blue-50 border border-slate-300 hover:border-blue-300 rounded-lg text-xs font-semibold text-slate-700 hover:text-blue-700 transition flex flex-col items-center">
+              <span class="font-bold text-blue-700">RR Rotation (Marks &uarr;)</span>
+              <span class="text-[10px] text-slate-500 font-mono mt-0.5">Insert 65% &rarr; 78% &rarr; 91%</span>
+            </button>
+            <button onclick="triggerRotationDemo('LR')" class="px-2.5 py-2 bg-white hover:bg-blue-50 border border-slate-300 hover:border-blue-300 rounded-lg text-xs font-semibold text-slate-700 hover:text-blue-700 transition flex flex-col items-center">
+              <span class="font-bold text-amber-700">LR Double Rotation</span>
+              <span class="text-[10px] text-slate-500 font-mono mt-0.5">Insert 97% &rarr; 69% &rarr; 83%</span>
+            </button>
+            <button onclick="triggerRotationDemo('RL')" class="px-2.5 py-2 bg-white hover:bg-blue-50 border border-slate-300 hover:border-blue-300 rounded-lg text-xs font-semibold text-slate-700 hover:text-blue-700 transition flex flex-col items-center">
+              <span class="font-bold text-amber-700">RL Double Rotation</span>
+              <span class="text-[10px] text-slate-500 font-mono mt-0.5">Insert 69% &rarr; 97% &rarr; 83%</span>
+            </button>
+          </div>
+
+          <!-- Dynamic Rotation Info Callout -->
+          <div id="rotationInfoBanner" class="hidden mt-3 p-3 bg-blue-50/90 border border-blue-200 rounded-lg text-xs text-blue-900 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <i class="fa-solid fa-circle-check text-blue-600 text-sm"></i>
+              <span id="rotationInfoText">-</span>
+            </div>
+            <button onclick="document.getElementById('rotationInfoBanner').classList.add('hidden')" class="text-blue-400 hover:text-blue-700">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Live Search Path Tracing Feedback Box -->
+        <div id="treeTraceBox" class="hidden my-3 p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-route text-amber-600 text-sm"></i>
+            <div>
+              <p class="font-bold text-amber-900" id="treeTraceHeading">Marks Comparison Traversal Path</p>
+              <p class="text-amber-700 font-mono text-[11px]" id="treeTraceSteps">-</p>
+            </div>
+          </div>
+          <button onclick="clearTreeTrace()" class="text-amber-800 hover:text-amber-950 font-semibold text-xs underline">
+            Dismiss Trace
+          </button>
+        </div>
+
+        <!-- Node Inspector Box (Appears on clicking any node) -->
+        <div id="nodeInspectorBox" class="hidden my-3 p-3.5 bg-blue-50/90 border border-blue-200 rounded-xl text-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <span class="px-2.5 py-1 rounded-md bg-blue-600 text-white font-mono font-bold text-sm" id="inspectNodeMarks">Marks: -</span>
+            <div>
+              <p class="font-bold text-slate-900 text-sm" id="inspectNodeName">-</p>
+              <p class="text-slate-600 text-xs" id="inspectNodeDetails">-</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-3 text-xs font-mono">
+            <span class="bg-white px-2.5 py-1 rounded border border-blue-100 text-slate-700">Subtree Height: <strong class="text-blue-700 text-sm" id="inspectNodeHeight">0</strong></span>
+            <span class="bg-white px-2.5 py-1 rounded border border-blue-100 text-slate-700">Balance Factor: <strong class="text-emerald-700 text-sm" id="inspectNodeBF">0</strong></span>
+            <span id="inspectNodeStatus" class="px-2 py-1 rounded bg-emerald-100 text-emerald-800 font-semibold border border-emerald-300">BALANCED</span>
+          </div>
+        </div>
+
+        <!-- SVG Tree Visualizer Canvas -->
+        <div class="w-full overflow-x-auto bg-slate-50/70 rounded-xl my-3 border border-slate-200 p-4 flex justify-center">
+          <svg id="svgTreeCanvas" class="w-full min-w-[760px] h-[370px] select-none"></svg>
+        </div>
+
+        <!-- Tree Legend -->
+        <div class="flex flex-wrap items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-100 px-1 gap-2">
+          <div class="flex items-center gap-4">
+            <span class="flex items-center gap-1.5">
+              <span class="w-3 h-3 rounded-full bg-blue-600 inline-block"></span> Root / Balanced Node
+            </span>
+            <span class="flex items-center gap-1.5">
+              <span class="w-3 h-3 rounded-full bg-amber-400 inline-block"></span> Search Traversal Step
+            </span>
+            <span class="flex items-center gap-1.5">
+              <span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span> Target Node Found
+            </span>
+            <span class="flex items-center gap-1.5">
+              <span class="w-3.5 h-2.5 rounded bg-emerald-100 border border-emerald-300 inline-block"></span> Balance Factor Badge [BF]
+            </span>
+          </div>
+          <span class="font-mono text-[11px] text-slate-400">Node center displays Marks % &bull; Sub-label shows Student Name &amp; ID</span>
+        </div>
+
+        <!-- Node Height & Balance Factor Inorder Audit Table -->
+        <div class="mt-5 pt-4 border-t border-slate-200">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider">
+              Inorder Traversal Verification (Naturally Sorted by Marks Ascending)
+            </h3>
+            <span class="text-xs text-slate-500 font-mono">BST Property: Left &lt; Root &lt; Right</span>
+          </div>
+          <div class="overflow-x-auto border border-slate-200 rounded-lg">
+            <table class="w-full text-xs text-left text-slate-700">
+              <thead class="bg-slate-50 text-slate-600 uppercase border-b border-slate-200 font-semibold font-mono">
+                <tr>
+                  <th class="py-2.5 px-3">Inorder Order</th>
+                  <th class="py-2.5 px-3">Marks % (Search Key)</th>
+                  <th class="py-2.5 px-3">Roll No / ID</th>
+                  <th class="py-2.5 px-3">Student Name</th>
+                  <th class="py-2.5 px-3">Department</th>
+                  <th class="py-2.5 px-3">Subtree Height (h)</th>
+                  <th class="py-2.5 px-3">Balance Factor (Left - Right)</th>
+                  <th class="py-2.5 px-3">AVL Invariant Condition</th>
+                </tr>
+              </thead>
+              <tbody id="treeAuditTableBody" class="divide-y divide-slate-100 font-mono"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 3: HASH TABLE CHAINING (SEPARATE CHAINING VISUALIZER) -->
+    <!-- ========================================================================= -->
+    <section id="view-hash" class="hidden space-y-4">
+      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-xs">
+        
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 gap-3">
+          <div>
+            <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+              <i class="fa-solid fa-hashtag text-amber-600"></i>
+              <span>Hash Table with Separate Chaining Collision Resolution</span>
+            </h2>
+            <p class="text-xs text-slate-500 mt-0.5">
+              Division Hash Function: <code class="text-amber-800 font-bold bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">h(ID) = ID % 11</code>. Prime modulo minimizes clustering for roll numbers.
+            </p>
+          </div>
+
+          <!-- Hash Explorer Utility -->
+          <div class="flex items-center gap-2">
+            <div class="flex items-center gap-1">
+              <input type="number" id="inputHashCalc" placeholder="Test any ID..." class="w-28 text-xs border border-slate-300 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-amber-500">
+              <button onclick="testHashFunctionInteractive()" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-semibold shadow-xs">
+                Compute Bucket
+              </button>
+            </div>
+            <span class="text-xs font-semibold px-3 py-1 bg-slate-100 text-slate-700 border border-slate-300 rounded-lg font-mono">
+              Table Size: M = 11
+            </span>
+          </div>
+        </div>
+
+        <!-- Hash Interactive Calculation Result -->
+        <div id="hashInteractiveBanner" class="hidden my-3 p-3 bg-amber-50 border border-amber-300 rounded-xl text-xs flex items-center justify-between font-mono">
+          <div class="flex items-center gap-2 text-amber-900">
+            <i class="fa-solid fa-calculator text-amber-600"></i>
+            <span id="hashInteractiveText">Calculation result...</span>
+          </div>
+          <button onclick="document.getElementById('hashInteractiveBanner').classList.add('hidden')" class="text-amber-700 hover:text-amber-900">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <!-- Collision Analysis Notice -->
+        <div class="my-3 p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between text-xs text-slate-600">
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-circle-info text-blue-600"></i>
+            <span>
+              <strong>Collision Demonstration:</strong> Note how <code class="bg-white px-1 py-0.5 rounded border font-mono">ID: 101</code> (101 % 11 = 2) and <code class="bg-white px-1 py-0.5 rounded border font-mono">ID: 112</code> (112 % 11 = 2) hash into the exact same bucket! Separate chaining links them into a singly linked list.
+            </span>
+          </div>
+          <span class="font-mono text-amber-700 font-bold bg-amber-100/70 px-2.5 py-1 rounded border border-amber-200">
+            Bucket #2 Collision
+          </span>
+        </div>
+
+        <!-- 11 Hash Buckets Grid -->
+        <div id="hashBucketsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-3.5 my-4"></div>
+
+        <!-- Mathematical Complexity Box -->
+        <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl text-xs space-y-1.5 text-slate-600 font-mono">
+          <p class="font-bold text-slate-800">Hash Table Performance Analysis:</p>
+          <p>&bull; <strong>Average Case Time Complexity:</strong> <span class="text-emerald-700 font-bold">O(1 + &alpha;)</span> where &alpha; = N / M = 8 / 11 = 0.73</p>
+          <p>&bull; <strong>Worst Case Time Complexity:</strong> <span class="text-rose-700 font-bold">O(N)</span> (Occurs only if all keys hash to the same bucket)</p>
+          <p>&bull; <strong>Space Complexity:</strong> <span class="text-blue-700 font-bold">O(M + N)</span> (11 bucket array pointers + N singly linked nodes)</p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 4: MERIT RANKING (MERGE SORT ALGORITHM) -->
+    <!-- ========================================================================= -->
+    <section id="view-mergesort" class="hidden space-y-4">
+      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-xs">
+        
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 gap-3">
+          <div>
+            <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+              <i class="fa-solid fa-arrow-down-wide-short text-emerald-600"></i>
+              <span>Department Merit Ranking (Merge Sort Algorithm)</span>
+            </h2>
+            <p class="text-xs text-slate-500 mt-0.5">
+              Stable Divide-and-Conquer Sorting. Guaranteed <strong class="text-slate-700">O(N log N)</strong> runtime under all input distributions.
+            </p>
+          </div>
+          
+          <div class="flex items-center gap-2">
+            <button onclick="renderMeritList(true)" class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow-xs flex items-center gap-1.5">
+              <i class="fa-solid fa-arrow-down"></i>
+              <span>Highest First (Rank 1 &rarr; N)</span>
+            </button>
+            <button onclick="renderMeritList(false)" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded-lg text-xs font-semibold flex items-center gap-1.5">
+              <i class="fa-solid fa-arrow-up"></i>
+              <span>Lowest First</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Top 3 Podium Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 my-4">
+          <!-- Rank 1 Gold -->
+          <div id="podiumRank1" class="p-4 rounded-xl border-2 border-amber-300 bg-amber-50/60 shadow-xs flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-amber-400 text-amber-950 font-bold flex items-center justify-center text-lg shadow-xs">
+              <i class="fa-solid fa-trophy"></i>
+            </div>
+            <div class="truncate">
+              <span class="text-[10px] font-bold text-amber-800 uppercase tracking-wider font-mono">Rank 1 &bull; Department Gold</span>
+              <p id="podiumName1" class="text-sm font-bold text-slate-900 truncate">-</p>
+              <p id="podiumScore1" class="text-xs font-mono font-bold text-amber-900">-</p>
+            </div>
+          </div>
+
+          <!-- Rank 2 Silver -->
+          <div id="podiumRank2" class="p-4 rounded-xl border border-slate-300 bg-slate-100/70 shadow-xs flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-slate-300 text-slate-700 font-bold flex items-center justify-center text-lg shadow-xs">
+              <i class="fa-solid fa-medal"></i>
+            </div>
+            <div class="truncate">
+              <span class="text-[10px] font-bold text-slate-600 uppercase tracking-wider font-mono">Rank 2 &bull; Silver Medal</span>
+              <p id="podiumName2" class="text-sm font-bold text-slate-900 truncate">-</p>
+              <p id="podiumScore2" class="text-xs font-mono font-bold text-slate-700">-</p>
+            </div>
+          </div>
+
+          <!-- Rank 3 Bronze -->
+          <div id="podiumRank3" class="p-4 rounded-xl border border-amber-200 bg-amber-50/30 shadow-xs flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-amber-600 text-white font-bold flex items-center justify-center text-lg shadow-xs">
+              <i class="fa-solid fa-award"></i>
+            </div>
+            <div class="truncate">
+              <span class="text-[10px] font-bold text-amber-700 uppercase tracking-wider font-mono">Rank 3 &bull; Bronze Medal</span>
+              <p id="podiumName3" class="text-sm font-bold text-slate-900 truncate">-</p>
+              <p id="podiumScore3" class="text-xs font-mono font-bold text-amber-800">-</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Visual Bar Chart -->
+        <div class="my-4">
+          <div class="text-xs font-semibold text-slate-600 mb-2 flex items-center justify-between">
+            <span>Visual Marks Distribution Curve:</span>
+            <span class="text-[11px] text-slate-400 font-mono">Scale: 0% &ndash; 100%</span>
+          </div>
+          <div id="meritBarsContainer" class="flex items-end space-x-2.5 h-48 bg-slate-50 p-4 rounded-xl border border-slate-200"></div>
+        </div>
+
+        <!-- Full Merit Table -->
+        <div class="mt-4">
+          <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Class Merit Table</h3>
+          <div class="overflow-x-auto border border-slate-200 rounded-lg">
+            <table class="w-full text-xs text-left text-slate-700">
+              <thead class="bg-slate-50 text-slate-600 uppercase border-b border-slate-200 font-semibold font-mono">
+                <tr>
+                  <th class="py-2.5 px-3">Position / Rank</th>
+                  <th class="py-2.5 px-3">Roll No / ID</th>
+                  <th class="py-2.5 px-3">Student Name</th>
+                  <th class="py-2.5 px-3">Department</th>
+                  <th class="py-2.5 px-3">Marks Percentage</th>
+                  <th class="py-2.5 px-3">Classification</th>
+                </tr>
+              </thead>
+              <tbody id="meritTableBody" class="divide-y divide-slate-100 font-medium"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Recurrence Relation Explainer -->
+        <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl text-xs space-y-1.5 text-slate-600 font-mono mt-4">
+          <p class="font-bold text-blue-900">Merge Sort Recurrence Relation:</p>
+          <p>T(N) = 2T(N/2) + &Theta;(N) &rArr; By Master Theorem (Case 2): <span class="text-emerald-700 font-bold">&Theta;(N log N)</span></p>
+          <p>&bull; <strong>Divide Phase:</strong> Recursively partitions the student mark array into two halves at mid = left + (right - left)/2.</p>
+          <p>&bull; <strong>Conquer Phase:</strong> Base cases of length 1 are trivially sorted.</p>
+          <p>&bull; <strong>Merge Phase:</strong> Merges two sorted subarrays using &ge; comparison to ensure stability (students with identical marks retain their original relative order).</p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- 4. LIVE DATA STRUCTURES EXECUTION LOG (COLLAPSIBLE DRAWER) -->
+    <!-- ========================================================================= -->
+    <div id="logDrawerContainer" class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden no-print">
+      <div class="px-4 py-2.5 bg-slate-100 border-b border-slate-200 flex items-center justify-between cursor-pointer" onclick="toggleLogDrawer()">
+        <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+          <i class="fa-solid fa-terminal text-blue-600"></i>
+          <span>Live Data Structures Execution &amp; Traversal Log</span>
+        </span>
+        <span class="text-[11px] text-slate-500 font-mono flex items-center gap-2">
+          <span id="logCountBadge" class="px-2 py-0.5 bg-blue-100 text-blue-800 rounded font-bold">1</span> events
+          <button onclick="event.stopPropagation(); clearExecutionLogs()" class="text-slate-400 hover:text-slate-700 text-xs font-sans underline">Clear</button>
+          <i id="logChevron" class="fa-solid fa-chevron-down text-[10px] ml-1 transition"></i>
+        </span>
+      </div>
+      <div id="logDrawerBody" class="p-3 bg-slate-900 text-slate-200 font-mono text-xs max-h-36 overflow-y-auto space-y-1">
+        <p class="text-emerald-400">[System] Initialized 8 student records from local store. BST &amp; AVL Tree (Keyed on Marks %) synchronized.</p>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL 1: ADD / EDIT STUDENT RECORD -->
+  <!-- ========================================================================= -->
+  <div id="studentModalDialog" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-2xs flex items-center justify-center p-4">
+    <div class="bg-white max-w-md w-full p-6 rounded-2xl border border-slate-200 shadow-2xl relative">
+      <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-100">
+        <h3 id="modalDialogHeading" class="text-base font-bold text-slate-900">
+          Enroll New Student
+        </h3>
+        <button onclick="closeStudentModal()" class="text-slate-400 hover:text-slate-700">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+
+      <form id="studentDataForm" onsubmit="submitStudentForm(event)" class="space-y-3.5 text-sm">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Student Roll Number / Unique ID (Integer)</label>
+          <input type="number" id="formStudentId" required min="1" placeholder="e.g. 108" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Full Student Name</label>
+          <input type="text" id="formStudentName" required placeholder="e.g. Rahul Sharma" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Department</label>
+            <select id="formStudentDept" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-600">
+              <option value="CSE">CSE</option>
+              <option value="ECE">ECE</option>
+              <option value="MECH">MECH</option>
+              <option value="IT">IT</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Year of Study</label>
+            <select id="formStudentYear" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-600">
+              <option value="1">1st Year</option>
+              <option value="2" selected>2nd Year</option>
+              <option value="3">3rd Year</option>
+              <option value="4">4th Year</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Marks Obtained (0.00 &ndash; 100.00)</label>
+          <input type="number" id="formStudentMarks" required min="0" max="100" step="0.01" placeholder="e.g. 88.50" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Institutional Email Address</label>
+          <input type="email" id="formStudentEmail" required placeholder="name@college.edu" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600">
+        </div>
+
+        <div class="flex items-center justify-end space-x-2 pt-3 border-t border-slate-100">
+          <button type="button" onclick="closeStudentModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition">
+            Cancel
+          </button>
+          <button type="submit" class="px-4 py-2 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-xs transition">
+            Save Record
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL 2: C++ SOURCE CODE INSPECTOR (EXAMINER PRESENTATION HELPER) -->
+  <!-- ========================================================================= -->
+  <div id="codeModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-2xs flex items-center justify-center p-4">
+    <div class="bg-white max-w-3xl w-full p-6 rounded-2xl border border-slate-200 shadow-2xl relative flex flex-col max-h-[85vh]">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-200">
+        <div>
+          <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+            <i class="fa-solid fa-code text-blue-600"></i>
+            <span>C++ Data Structures Implementation Viewer</span>
+          </h3>
+          <p class="text-xs text-slate-500">Live source reference directly extracted from project header files.</p>
+        </div>
+        <button onclick="closeCodeModal()" class="text-slate-400 hover:text-slate-700">
+          <i class="fa-solid fa-xmark text-base"></i>
+        </button>
+      </div>
+
+      <!-- Code Tabs -->
+      <div class="flex space-x-1 border-b border-slate-200 pt-3 pb-2 overflow-x-auto text-xs font-semibold">
+        <button onclick="displayCodeSnippet('AVL')" id="codeTab-AVL" class="px-3 py-1.5 rounded-md bg-blue-600 text-white">
+          AVLTree.h (Key: Marks %)
+        </button>
+        <button onclick="displayCodeSnippet('BST')" id="codeTab-BST" class="px-3 py-1.5 rounded-md text-slate-600 hover:bg-slate-100">
+          BST.h (Key: Marks %)
+        </button>
+        <button onclick="displayCodeSnippet('HASH')" id="codeTab-HASH" class="px-3 py-1.5 rounded-md text-slate-600 hover:bg-slate-100">
+          HashTable.h (ID % 11)
+        </button>
+        <button onclick="displayCodeSnippet('SORT')" id="codeTab-SORT" class="px-3 py-1.5 rounded-md text-slate-600 hover:bg-slate-100">
+          MergeSort.h (Divide &amp; Conquer)
+        </button>
+      </div>
+
+      <!-- Code Block Container -->
+      <div class="flex-1 overflow-y-auto mt-3 bg-slate-900 p-4 rounded-xl border border-slate-800 text-slate-200 font-mono text-xs leading-relaxed">
+        <pre><code id="codeSnippetBox"></code></pre>
+      </div>
+
+      <div class="pt-3 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
+        <span>Standard C++17 compliant &bull; Zero external dependencies</span>
+        <button onclick="closeCodeModal()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg">
+          Close Inspector
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- JAVASCRIPT APPLICATION CORE (AUTHENTIC ADSA LOGIC - MARKS KEYED) -->
+  <!-- ========================================================================= -->
+  <script>
+    // --- 1. DEFAULT DATASET (Matches students.txt) ---
+    const DEFAULT_STUDENTS = [
+      { id: 104, name: "Ananya Iyer", dept: "CSE", year: 4, marks: 95.75, email: "ananya.iyer@college.edu" },
+      { id: 107, name: "Neha Gupta", dept: "IT", year: 4, marks: 94.20, email: "neha.gupta@college.edu" },
+      { id: 102, name: "Priya Patel", dept: "ECE", year: 3, marks: 92.00, email: "priya.patel@college.edu" },
+      { id: 106, name: "Siddharth Rao", dept: "CSE", year: 3, marks: 89.50, email: "siddharth.rao@college.edu" },
+      { id: 101, name: "Aarav Sharma", dept: "CSE", year: 2, marks: 88.50, email: "aarav.sharma@college.edu" },
+      { id: 112, name: "Vikram Aditya", dept: "CSE", year: 3, marks: 85.00, email: "vikram.aditya@college.edu" },
+      { id: 105, name: "Karthik Nair", dept: "ECE", year: 2, marks: 81.00, email: "karthik.nair@college.edu" },
+      { id: 103, name: "Rohan Verma", dept: "MECH", year: 1, marks: 76.25, email: "rohan.verma@college.edu" }
+    ];
+
+    let students = JSON.parse(localStorage.getItem('adsa_students_cache')) || JSON.parse(JSON.stringify(DEFAULT_STUDENTS));
+    let activeEditingId = null;
+    let selectedDepartment = 'ALL';
+    let logEventCount = 1;
+    let currentTreeArchitecture = 'AVL'; // 'AVL' or 'BST'
+    let highlightedSearchPath = [];
+    let targetFoundNodeMarks = null;
+
+    // --- 2. C++ CODE SNIPPETS FOR EXAMINER PRESENTATION (MARKS-KEYED) ---
+    const CXX_SNIPPETS = {
+      AVL: `// AVLTree.h - Keyed on Academic Marks (%) with Rotations
+AVLNode* rotateRight(AVLNode* y) {
+    AVLNode* x = y->left;
+    AVLNode* T2 = x->right;
+    x->right = y;
+    y->left = T2;
+    y->height = 1 + std::max(getHeight(y->left), getHeight(y->right));
+    x->height = 1 + std::max(getHeight(x->left), getHeight(x->right));
+    return x; // New root of rotated subtree
+}
+
+AVLNode* rotateLeft(AVLNode* x) {
+    AVLNode* y = x->right;
+    AVLNode* T2 = y->left;
+    y->left = x;
+    x->right = T2;
+    x->height = 1 + std::max(getHeight(x->left), getHeight(x->right));
+    y->height = 1 + std::max(getHeight(y->left), getHeight(y->right));
+    return y; // New root of rotated subtree
+}
+
+// Tree is keyed on Academic Marks (%) with Student ID as secondary tie-breaker
+AVLNode* insert(AVLNode* node, const Student& s) {
+    if (!node) return new AVLNode(s);
+    
+    // Comparison by Marks %
+    if (s.marks < node->data.marks || (s.marks == node->data.marks && s.id < node->data.id))
+        node->left = insert(node->left, s);
+    else if (s.marks > node->data.marks || (s.marks == node->data.marks && s.id > node->data.id))
+        node->right = insert(node->right, s);
+    else return node; // Duplicate student
+
+    node->height = 1 + std::max(getHeight(node->left), getHeight(node->right));
+    int balance = getBalanceFactor(node);
+
+    // 4 Rotation Cases for Balance Restoration:
+    if (balance > 1 && s.marks < node->left->data.marks) 
+        return rotateRight(node);                         // LL Case
+    if (balance < -1 && s.marks > node->right->data.marks) 
+        return rotateLeft(node);                          // RR Case
+    if (balance > 1 && s.marks > node->left->data.marks) { // LR Case
+        node->left = rotateLeft(node->left);
+        return rotateRight(node);
+    }
+    if (balance < -1 && s.marks < node->right->data.marks) { // RL Case
+        node->right = rotateRight(node->right);
+        return rotateLeft(node);
+    }
+    return node;
+}`,
+      BST: `// BST.h - Keyed on Academic Marks (%) with Inorder Deletion
+BSTNode* insert(BSTNode* root, const Student& s) {
+    if (!root) return new BSTNode(s);
+    if (s.marks < root->data.marks || (s.marks == root->data.marks && s.id < root->data.id))
+        root->left = insert(root->left, s);
+    else if (s.marks > root->data.marks || (s.marks == root->data.marks && s.id > root->data.id))
+        root->right = insert(root->right, s);
+    return root;
+}
+
+// Inorder Traversal yields students in strictly ascending marks order!
+void inorderTraversal(BSTNode* root) {
+    if (!root) return;
+    inorderTraversal(root->left);
+    std::cout << root->data.marks << "% | " << root->data.name << std::endl;
+    inorderTraversal(root->right);
+}`,
+      HASH: `// HashTable.h - Modulo Division by Roll Number / Unique ID
+class HashTable {
+private:
+    static const int TABLE_SIZE = 11; // Prime table size to avoid clustering
+    HashNode* table[TABLE_SIZE];
+
+    int hashFunction(int id) const {
+        return id % TABLE_SIZE;
+    }
+public:
+    void insert(const Student& s) {
+        int index = hashFunction(s.id);
+        HashNode* newNode = new HashNode(s);
+        // Separate Chaining: Insert at head of singly-linked list (O(1))
+        newNode->next = table[index];
+        table[index] = newNode;
+    }
+
+    Student* search(int id) const {
+        int index = hashFunction(id);
+        HashNode* curr = table[index];
+        while (curr != nullptr) {
+            if (curr->data.id == id) return &(curr->data); // Found!
+            curr = curr->next;
+        }
+        return nullptr; // Not found in chain
+    }
+};`,
+      SORT: `// MergeSort.h - Divide and Conquer Stable Sorting by Marks
+void merge(std::vector<Student>& arr, int left, int mid, int right, bool ascending) {
+    std::vector<Student> leftArr(arr.begin() + left, arr.begin() + mid + 1);
+    std::vector<Student> rightArr(arr.begin() + mid + 1, arr.begin() + right + 1);
+
+    size_t i = 0, j = 0;
+    int k = left;
+
+    while (i < leftArr.size() && j < rightArr.size()) {
+        bool condition = ascending ? (leftArr[i].marks <= rightArr[j].marks)
+                                   : (leftArr[i].marks >= rightArr[j].marks);
+        if (condition) arr[k++] = leftArr[i++];
+        else arr[k++] = rightArr[j++];
+    }
+    while (i < leftArr.size()) arr[k++] = leftArr[i++];
+    while (j < rightArr.size()) arr[k++] = rightArr[j++];
+}
+
+void mergeSort(std::vector<Student>& arr, int left, int right, bool ascending) {
+    if (left < right) {
+        int mid = left + (right - left) / 2;
+        mergeSort(arr, left, mid, ascending);
+        mergeSort(arr, mid + 1, right, ascending);
+        merge(arr, left, mid, right, ascending);
+    }
+}`
+    };
+
+    // --- 3. AVL TREE DATA STRUCTURE (KEYED ON MARKS %) ---
+    class AVLNode {
+      constructor(item) {
+        this.data = item;
+        this.marks = item.marks; // Primary Tree Key
+        this.id = item.id;       // Secondary Tie-breaker
+        this.height = 1;
+        this.left = null;
+        this.right = null;
+        this.x = 0;
+        this.y = 0;
+      }
+    }
+
+    function compareStudentsByMarks(s1, s2) {
+      if (s1.marks !== s2.marks) return s1.marks - s2.marks;
+      return s1.id - s2.id;
+    }
+
+    class AVLTree {
+      constructor() {
+        this.root = null;
+      }
+
+      getHeight(n) { return n ? n.height : 0; }
+      getBF(n) { return n ? (this.getHeight(n.left) - this.getHeight(n.right)) : 0; }
+
+      updateHeight(n) {
+        if (n) n.height = 1 + Math.max(this.getHeight(n.left), this.getHeight(n.right));
+      }
+
+      rotateRight(y) {
+        const x = y.left;
+        const T2 = x.right;
+        x.right = y;
+        y.left = T2;
+        this.updateHeight(y);
+        this.updateHeight(x);
+        appendLog(`[AVL Rotation] Executed Right-Rotation on Pivot Node (Marks: ${y.marks.toFixed(2)}%, ID: ${y.id})`);
+        return x;
+      }
+
+      rotateLeft(x) {
+        const y = x.right;
+        const T2 = y.left;
+        y.left = x;
+        x.right = T2;
+        this.updateHeight(x);
+        this.updateHeight(y);
+        appendLog(`[AVL Rotation] Executed Left-Rotation on Pivot Node (Marks: ${x.marks.toFixed(2)}%, ID: ${x.id})`);
+        return y;
+      }
+
+      insert(item) {
+        const helper = (node, s) => {
+          if (!node) return new AVLNode(s);
+          
+          const cmp = compareStudentsByMarks(s, node);
+          if (cmp < 0) node.left = helper(node.left, s);
+          else if (cmp > 0) node.right = helper(node.right, s);
+          else return node; // Duplicate student
+
+          this.updateHeight(node);
+          const bf = this.getBF(node);
+
+          // LL Case: Left subtree overloaded on left
+          if (bf > 1 && compareStudentsByMarks(s, node.left) < 0) return this.rotateRight(node);
+          // RR Case: Right subtree overloaded on right
+          if (bf < -1 && compareStudentsByMarks(s, node.right) > 0) return this.rotateLeft(node);
+          // LR Case: Left subtree overloaded on right
+          if (bf > 1 && compareStudentsByMarks(s, node.left) > 0) {
+            node.left = this.rotateLeft(node.left);
+            return this.rotateRight(node);
+          }
+          // RL Case: Right subtree overloaded on left
+          if (bf < -1 && compareStudentsByMarks(s, node.right) < 0) {
+            node.right = this.rotateRight(node.right);
+            return this.rotateLeft(node);
+          }
+          return node;
+        };
+        this.root = helper(this.root, item);
+      }
+
+      rebuild(list) {
+        this.root = null;
+        list.forEach(item => this.insert(item));
+      }
+
+      getInorderNodes() {
+        const res = [];
+        const dfs = (node) => {
+          if (node) {
+            dfs(node.left);
+            res.push(node);
+            dfs(node.right);
+          }
+        };
+        dfs(this.root);
+        return res;
+      }
+    }
+
+    // --- 4. STANDARD UNBALANCED BST (KEYED ON MARKS %) ---
+    class BSTTree {
+      constructor() {
+        this.root = null;
+      }
+
+      getHeight(n) {
+        if (!n) return 0;
+        return 1 + Math.max(this.getHeight(n.left), this.getHeight(n.right));
+      }
+
+      insert(item) {
+        const helper = (node, s) => {
+          if (!node) return new AVLNode(s);
+          const cmp = compareStudentsByMarks(s, node);
+          if (cmp < 0) node.left = helper(node.left, s);
+          else if (cmp > 0) node.right = helper(node.right, s);
+          node.height = this.getHeight(node);
+          return node;
+        };
+        this.root = helper(this.root, item);
+      }
+
+      rebuild(list) {
+        this.root = null;
+        list.forEach(item => this.insert(item));
+      }
+
+      getInorderNodes() {
+        const res = [];
+        const dfs = (node) => {
+          if (node) {
+            dfs(node.left);
+            res.push(node);
+            dfs(node.right);
+          }
+        };
+        dfs(this.root);
+        return res;
+      }
+    }
+
+    const avlTreeInstance = new AVLTree();
+    const bstTreeInstance = new BSTTree();
+
+    // --- 5. LOG DRAWER FUNCTIONS ---
+    function appendLog(msg, color = 'text-slate-300') {
+      const drawer = document.getElementById('logDrawerBody');
+      const p = document.createElement('p');
+      p.className = color;
+      const timeStr = new Date().toLocaleTimeString();
+      p.innerText = `[${timeStr}] ${msg}`;
+      drawer.appendChild(p);
+      drawer.scrollTop = drawer.scrollHeight;
+      logEventCount++;
+      document.getElementById('logCountBadge').innerText = logEventCount;
+    }
+
+    function toggleLogDrawer() {
+      const drawer = document.getElementById('logDrawerBody');
+      const chev = document.getElementById('logChevron');
+      drawer.classList.toggle('hidden');
+      chev.classList.toggle('rotate-180');
+    }
+
+    function clearExecutionLogs() {
+      document.getElementById('logDrawerBody').innerHTML = '';
+      logEventCount = 0;
+      document.getElementById('logCountBadge').innerText = '0';
+    }
+
+    // --- 6. TAB SWITCHING ---
+    function switchView(viewName) {
+      document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
+      document.getElementById('view-' + viewName).classList.remove('hidden');
+
+      document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.remove('border-blue-600', 'text-blue-600', 'active', 'font-semibold');
+        btn.classList.add('border-transparent', 'text-slate-600', 'font-medium');
+      });
+
+      const currentBtn = document.getElementById('tabBtn-' + viewName);
+      currentBtn.classList.remove('border-transparent', 'text-slate-600', 'font-medium');
+      currentBtn.classList.add('border-blue-600', 'text-blue-600', 'active', 'font-semibold');
+
+      if (viewName === 'tree') renderTreeCanvas();
+      if (viewName === 'hash') renderHashView();
+      if (viewName === 'mergesort') renderMeritList(true);
+    }
+
+    // --- 7. STUDENT REGISTRY TABLE & LIVE SEARCH ---
+    function renderRegistryTable(items) {
+      const tbody = document.getElementById('studentRecordsTableBody');
+      tbody.innerHTML = '';
+
+      document.getElementById('recordCountDisplay').innerText = `Displaying ${items.length} of ${students.length} student records`;
+
+      if (items.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-slate-400 font-sans">No student records match search criteria.</td></tr>`;
+        return;
+      }
+
+      items.forEach(s => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-50 transition";
+        
+        let gradeBadge = '';
+        if (s.marks >= 90) gradeBadge = '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">A+ (Outstanding)</span>';
+        else if (s.marks >= 80) gradeBadge = '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-blue-100 text-blue-800 border border-blue-200">A (Very Good)</span>';
+        else if (s.marks >= 70) gradeBadge = '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-200">B+ (Good)</span>';
+        else gradeBadge = '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-200">Pass</span>';
+
+        tr.innerHTML = `
+          <td class="py-3 px-4 font-mono font-bold text-slate-900">${s.id}</td>
+          <td class="py-3 px-4 font-medium text-slate-800">${s.name}</td>
+          <td class="py-3 px-4">
+            <span class="px-2 py-0.5 rounded text-xs bg-slate-100 text-slate-700 font-semibold border border-slate-200">${s.dept}</span>
+          </td>
+          <td class="py-3 px-4 text-slate-600">Year ${s.year}</td>
+          <td class="py-3 px-4 font-mono font-bold ${s.marks >= 90 ? 'text-emerald-600' : 'text-slate-800'}">
+            ${s.marks.toFixed(2)}%
+          </td>
+          <td class="py-3 px-4">${gradeBadge}</td>
+          <td class="py-3 px-4 text-slate-500 text-xs">${s.email}</td>
+          <td class="py-3 px-4 text-right space-x-2 no-print">
+            <button onclick="editStudentRecord(${s.id})" class="text-blue-600 hover:text-blue-800 text-xs font-semibold" title="Edit Record">
+              <i class="fa-solid fa-pen-to-square"></i> Edit
+            </button>
+            <button onclick="deleteStudentRecord(${s.id})" class="text-rose-600 hover:text-rose-800 text-xs font-semibold" title="Delete Record">
+              <i class="fa-solid fa-trash"></i> Delete
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      refreshKpis();
+    }
+
+    function refreshKpis() {
+      document.getElementById('statTotalCount').innerText = students.length;
+      if (students.length > 0) {
+        const sum = students.reduce((acc, cur) => acc + cur.marks, 0);
+        const avg = sum / students.length;
+        document.getElementById('statAverageMarks').innerText = avg.toFixed(1) + '%';
+        document.getElementById('statAverageGrade').innerText = avg >= 85 ? 'Rating: Outstanding' : 'Rating: Good';
+        
+        const top = [...students].sort((a, b) => b.marks - a.marks)[0];
+        document.getElementById('statTopRanker').innerText = `${top.name} (${top.marks.toFixed(2)}%)`;
+        
+        const lf = (students.length / 11).toFixed(2);
+        document.getElementById('statLoadFactor').innerText = lf;
+      } else {
+        document.getElementById('statAverageMarks').innerText = '0%';
+        document.getElementById('statTopRanker').innerText = 'None';
+        document.getElementById('statLoadFactor').innerText = '0.00';
+      }
+    }
+
+    function handleLiveSearch() {
+      const q = document.getElementById('inputSearch').value.trim().toLowerCase();
+      if (!q) {
+        applyFilters();
+        return;
+      }
+
+      const filtered = students.filter(s => 
+        s.id.toString().includes(q) ||
+        s.name.toLowerCase().includes(q) ||
+        s.dept.toLowerCase().includes(q)
+      );
+      renderRegistryTable(filtered);
+    }
+
+    function executeHashLookup() {
+      const q = parseInt(document.getElementById('inputSearch').value);
+      if (isNaN(q)) {
+        triggerAlert("Please enter a numeric Student ID in the search box for Hash O(1) Lookup.", "info");
+        return;
+      }
+
+      const bucketIdx = q % 11;
+      const target = students.find(s => s.id === q);
+
+      if (target) {
+        renderRegistryTable([target]);
+        triggerAlert(`[Hash Table O(1)] Found Student ID ${q} in Bucket #${bucketIdx}!`, 'success');
+        appendLog(`[HashTable O(1) Direct Lookup] ID ${q} (${target.name}) located in Bucket #${bucketIdx}`, 'text-cyan-300');
+      } else {
+        renderRegistryTable([]);
+        triggerAlert(`[Hash Table O(1)] Student ID ${q} not found (Bucket #${bucketIdx} scanned).`, 'error');
+        appendLog(`[HashTable Lookup] ID ${q} not found in Bucket #${bucketIdx}`, 'text-rose-300');
+      }
+    }
+
+    function clearSearch() {
+      document.getElementById('inputSearch').value = '';
+      applyFilters();
+    }
+
+    function filterDept(dept, btnElement) {
+      selectedDepartment = dept;
+      document.querySelectorAll('.dept-pill').forEach(btn => {
+        btn.classList.remove('bg-white', 'shadow-xs', 'text-blue-700', 'font-semibold');
+        btn.classList.add('hover:text-slate-900');
+      });
+      if (btnElement) {
+        btnElement.classList.add('bg-white', 'shadow-xs', 'text-blue-700', 'font-semibold');
+      }
+      applyFilters();
+      appendLog(`[Filter] Filtered registry by Department: ${dept}`);
+    }
+
+    function applyFilters() {
+      let filtered = (selectedDepartment === 'ALL') ? students : students.filter(s => s.dept === selectedDepartment);
+      const q = document.getElementById('inputSearch').value.trim().toLowerCase();
+      if (q) {
+        filtered = filtered.filter(s => 
+          s.id.toString().includes(q) ||
+          s.name.toLowerCase().includes(q) ||
+          s.dept.toLowerCase().includes(q)
+        );
+      }
+      renderRegistryTable(filtered);
+    }
+
+    // --- 8. SORTING ENGINE ---
+    function handleSortSelect() {
+      const val = document.getElementById('selectSortMode').value;
+      let list = [...students];
+
+      if (val === 'marks_asc') {
+        // Natural Inorder traversal order of Marks-keyed BST/AVL
+        list.sort((a, b) => a.marks - b.marks);
+        triggerAlert("Records sorted in ascending Marks order using Marks-Keyed BST/AVL Inorder Traversal", "info");
+        appendLog("[BST Traversal] Inorder traversal scan on Marks key (O(N) time complexity)");
+      } else if (val === 'marks_desc') {
+        list = executeMergeSort(list, false);
+        triggerAlert("Records ranked by marks (Highest first) using Merge Sort", "info");
+        appendLog("[Merge Sort] Sorted marks array descending (O(N log N) Divide-and-Conquer)");
+      } else if (val === 'id_asc') {
+        list.sort((a, b) => a.id - b.id);
+        triggerAlert("Records sorted in ascending Roll Number / ID order", "info");
+        appendLog("[Registry Sort] Sorted by Student Roll No (Ascending)");
+      }
+      renderRegistryTable(list);
+    }
+
+    function executeMergeSort(arr, asc = true) {
+      if (arr.length <= 1) return arr;
+      const mid = Math.floor(arr.length / 2);
+      const left = executeMergeSort(arr.slice(0, mid), asc);
+      const right = executeMergeSort(arr.slice(mid), asc);
+
+      const res = [];
+      let i = 0, j = 0;
+      while (i < left.length && j < right.length) {
+        const cond = asc ? (left[i].marks <= right[j].marks) : (left[i].marks >= right[j].marks);
+        if (cond) res.push(left[i++]);
+        else res.push(right[j++]);
+      }
+      return res.concat(left.slice(i)).concat(right.slice(j));
+    }
+
+    // --- 9. MODAL & CRUD LOGIC ---
+    function openStudentModal(mode) {
+      activeEditingId = null;
+      document.getElementById('modalDialogHeading').innerText = 'Enroll New Student';
+      document.getElementById('formStudentId').disabled = false;
+      document.getElementById('studentDataForm').reset();
+      document.getElementById('studentModalDialog').classList.remove('hidden');
+    }
+
+    function editStudentRecord(id) {
+      activeEditingId = id;
+      const item = students.find(s => s.id === id);
+      if (!item) return;
+
+      document.getElementById('modalDialogHeading').innerText = `Edit Student Record (ID: ${id})`;
+      document.getElementById('formStudentId').value = item.id;
+      document.getElementById('formStudentId').disabled = true;
+      document.getElementById('formStudentName').value = item.name;
+      document.getElementById('formStudentDept').value = item.dept;
+      document.getElementById('formStudentYear').value = item.year;
+      document.getElementById('formStudentMarks').value = item.marks;
+      document.getElementById('formStudentEmail').value = item.email;
+      document.getElementById('studentModalDialog').classList.remove('hidden');
+    }
+
+    function closeStudentModal() {
+      document.getElementById('studentModalDialog').classList.add('hidden');
+    }
+
+    function submitStudentForm(e) {
+      e.preventDefault();
+      const id = parseInt(document.getElementById('formStudentId').value);
+      const name = document.getElementById('formStudentName').value.trim();
+      const dept = document.getElementById('formStudentDept').value.trim().toUpperCase();
+      const year = parseInt(document.getElementById('formStudentYear').value);
+      const marks = parseFloat(document.getElementById('formStudentMarks').value);
+      const email = document.getElementById('formStudentEmail').value.trim();
+
+      if (activeEditingId !== null) {
+        const idx = students.findIndex(s => s.id === activeEditingId);
+        if (idx !== -1) {
+          students[idx] = { id, name, dept, year, marks, email };
+          triggerAlert(`Student ID ${id} details updated. Rebalanced Marks-Keyed AVL Tree!`, 'success');
+          appendLog(`[Update] Synchronized update for Student ID ${id} (${marks}%) in BST, AVL Tree & Hash Table`);
+        }
+      } else {
+        if (students.some(s => s.id === id)) {
+          alert(`Error: Student ID ${id} already exists! Duplicate IDs are rejected by BST and Hash Table.`);
+          return;
+        }
+        students.push({ id, name, dept, year, marks, email });
+        triggerAlert(`Enrolled Student ID ${id} with ${marks.toFixed(2)}% Marks. AVL Tree rebalanced!`, 'success');
+        appendLog(`[Add Record] Inserted Student ${id} (Marks: ${marks.toFixed(2)}%) into Marks-Keyed AVL Tree & Hash Bucket #${id % 11}`);
+      }
+
+      saveToLocalStorage();
+      closeStudentModal();
+      applyFilters();
+      if (!document.getElementById('view-tree').classList.contains('hidden')) renderTreeCanvas();
+    }
+
+    function deleteStudentRecord(id) {
+      if (confirm(`Confirm permanent deletion of Student ID ${id}?`)) {
+        const target = students.find(s => s.id === id);
+        students = students.filter(s => s.id !== id);
+        saveToLocalStorage();
+        triggerAlert(`Student ID ${id} deleted. Tree rebalanced on Marks key.`, 'info');
+        appendLog(`[Deletion] Deleted ID ${id} (Marks: ${target ? target.marks : ''}%). Handled BST deletion cases & Hash Table unlinking`);
+        applyFilters();
+        if (!document.getElementById('view-tree').classList.contains('hidden')) renderTreeCanvas();
+      }
+    }
+
+    function saveToLocalStorage() {
+      localStorage.setItem('adsa_students_cache', JSON.stringify(students));
+    }
+
+    function triggerAlert(msg, type = 'info') {
+      const box = document.getElementById('statusAlert');
+      const text = document.getElementById('statusMessage');
+      const icon = document.getElementById('statusIcon');
+
+      text.innerText = msg;
+      box.className = "p-3.5 rounded-xl text-sm border flex items-center justify-between shadow-xs transition-all no-print";
+
+      if (type === 'success') {
+        box.classList.add('bg-emerald-50', 'border-emerald-200', 'text-emerald-800');
+        icon.className = "fa-solid fa-circle-check text-emerald-600";
+      } else if (type === 'error') {
+        box.classList.add('bg-rose-50', 'border-rose-200', 'text-rose-800');
+        icon.className = "fa-solid fa-circle-exclamation text-rose-600";
+      } else {
+        box.classList.add('bg-blue-50', 'border-blue-200', 'text-blue-800');
+        icon.className = "fa-solid fa-circle-info text-blue-600";
+      }
+      box.classList.remove('hidden');
+    }
+
+    // --- 10. ADVANCED MARKS-KEYED TREE VISUALIZER (AVL & BST) ---
+    function setTreeArchitecture(arch) {
+      currentTreeArchitecture = arch;
+      const btnAVL = document.getElementById('btnArchAVL');
+      const btnBST = document.getElementById('btnArchBST');
+      const heading = document.getElementById('treeModeHeading');
+      const badge = document.getElementById('treeBadgeStatus');
+
+      if (arch === 'AVL') {
+        btnAVL.className = "px-3 py-1.5 rounded-md bg-white text-blue-700 shadow-xs transition font-semibold";
+        btnBST.className = "px-3 py-1.5 rounded-md text-slate-600 hover:text-slate-900 transition font-medium";
+        heading.innerText = "Self-Balancing AVL Tree (Keyed on Student Marks %)";
+        badge.innerText = "Key: Marks (%) \u2022 O(log N)";
+        badge.className = "px-2.5 py-0.5 rounded text-[11px] font-mono font-bold bg-emerald-100 text-emerald-800 border border-emerald-300";
+        appendLog("[Tree Mode] Switched to Self-Balancing AVL Tree keyed on Marks (%) - Strict |BF| <= 1");
+      } else {
+        btnBST.className = "px-3 py-1.5 rounded-md bg-white text-blue-700 shadow-xs transition font-semibold";
+        btnAVL.className = "px-3 py-1.5 rounded-md text-slate-600 hover:text-slate-900 transition font-medium";
+        heading.innerText = "Standard Binary Search Tree (Keyed on Student Marks %)";
+        badge.innerText = "Key: Marks (%) \u2022 Unbalanced BST";
+        badge.className = "px-2.5 py-0.5 rounded text-[11px] font-mono font-bold bg-amber-100 text-amber-800 border border-amber-300";
+        appendLog("[Tree Mode] Switched to Standard BST on Marks (%) - Demonstrates height skew without balancing");
+      }
+
+      clearTreeTrace();
+      renderTreeCanvas();
+    }
+
+    function renderTreeCanvas() {
+      const activeTree = (currentTreeArchitecture === 'AVL') ? avlTreeInstance : bstTreeInstance;
+      activeTree.rebuild(students);
+
+      const svg = document.getElementById('svgTreeCanvas');
+      svg.innerHTML = '';
+      const auditTbody = document.getElementById('treeAuditTableBody');
+      auditTbody.innerHTML = '';
+
+      if (!activeTree.root) {
+        svg.innerHTML = `<text x="50%" y="50%" text-anchor="middle" fill="#94a3b8" font-size="13" font-family="'Plus Jakarta Sans', sans-serif">Tree is currently empty. Add student records to visualize.</text>`;
+        return;
+      }
+
+      // Populate Audit Table (Inorder traversal naturally produces sorted marks!)
+      const inOrderNodes = activeTree.getInorderNodes();
+      inOrderNodes.forEach((node, idx) => {
+        const bf = (currentTreeArchitecture === 'AVL') ? avlTreeInstance.getBF(node) : (bstTreeInstance.getHeight(node.left) - bstTreeInstance.getHeight(node.right));
+        const bfLabel = bf > 0 ? `+${bf}` : `${bf}`;
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-50 transition cursor-pointer";
+        tr.onclick = () => inspectNodeByObject(node);
+        tr.innerHTML = `
+          <td class="py-2.5 px-3 font-mono font-bold text-slate-500">#${idx + 1}</td>
+          <td class="py-2.5 px-3 font-bold font-mono text-blue-700">${node.marks.toFixed(2)}%</td>
+          <td class="py-2.5 px-3 font-mono font-bold text-slate-800">${node.id}</td>
+          <td class="py-2.5 px-3 font-sans">${node.data.name}</td>
+          <td class="py-2.5 px-3 font-sans">${node.data.dept}</td>
+          <td class="py-2.5 px-3">${node.height}</td>
+          <td class="py-2.5 px-3 font-bold ${Math.abs(bf) <= 1 ? 'text-emerald-600' : 'text-rose-600'}">${bfLabel}</td>
+          <td class="py-2.5 px-3">
+            <span class="px-2 py-0.5 rounded text-[11px] font-sans font-semibold ${Math.abs(bf) <= 1 ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-rose-100 text-rose-800 border border-rose-300'}">
+              ${Math.abs(bf) <= 1 ? '|BF| \u2264 1 (Balanced)' : '|BF| > 1 (Imbalance!)'}
+            </span>
+          </td>
+        `;
+        auditTbody.appendChild(tr);
+      });
+
+      // NON-OVERLAPPING INORDER-SPACED LAYOUT ENGINE
+      const levelGap = 76;
+      const initialY = 50;
+      const minNodeDist = 72; // Generous space to display marks clearly
+      const totalNodes = inOrderNodes.length;
+      const calculatedWidth = Math.max(780, totalNodes * minNodeDist + 140);
+      const treeDepth = (currentTreeArchitecture === 'AVL') ? avlTreeInstance.getHeight(activeTree.root) : bstTreeInstance.getHeight(activeTree.root);
+      
+      svg.setAttribute('width', calculatedWidth);
+      svg.setAttribute('height', Math.max(370, (treeDepth + 1) * levelGap + 40));
+
+      // Inorder x positioning guarantees node.left.x < node.x < node.right.x strictly!
+      let leafIndex = 0;
+      function assignPositions(node, depth) {
+        if (!node) return;
+        if (node.left) assignPositions(node.left, depth + 1);
+        
+        node.x = 70 + leafIndex * minNodeDist;
+        node.y = initialY + depth * levelGap;
+        leafIndex++;
+
+        if (node.right) assignPositions(node.right, depth + 1);
+      }
+      assignPositions(activeTree.root, 0);
+
+      // Re-center tree canvas horizontally
+      let minX = Infinity, maxX = -Infinity;
+      inOrderNodes.forEach(n => {
+        if (n.x < minX) minX = n.x;
+        if (n.x > maxX) maxX = n.x;
+      });
+      const shiftX = (calculatedWidth - (maxX - minX)) / 2 - minX;
+      inOrderNodes.forEach(n => { n.x += shiftX; });
+
+      // Draw Edges
+      let linesHtml = '';
+      function buildLines(node) {
+        if (!node) return;
+        if (node.left) {
+          const isEdgeActive = highlightedSearchPath.includes(node.marks) && highlightedSearchPath.includes(node.left.marks);
+          linesHtml += `<line id="edge-${node.id}-${node.left.id}" class="tree-edge ${isEdgeActive ? 'tree-edge-active' : ''}" x1="${node.x}" y1="${node.y}" x2="${node.left.x}" y2="${node.left.y}" />`;
+          buildLines(node.left);
+        }
+        if (node.right) {
+          const isEdgeActive = highlightedSearchPath.includes(node.marks) && highlightedSearchPath.includes(node.right.marks);
+          linesHtml += `<line id="edge-${node.id}-${node.right.id}" class="tree-edge ${isEdgeActive ? 'tree-edge-active' : ''}" x1="${node.x}" y1="${node.y}" x2="${node.right.x}" y2="${node.right.y}" />`;
+          buildLines(node.right);
+        }
+      }
+      buildLines(activeTree.root);
+
+      // Draw Nodes (Displaying Marks as the prominent center key!)
+      let nodesHtml = '';
+      function buildNodes(node) {
+        if (!node) return;
+        const bf = (currentTreeArchitecture === 'AVL') ? avlTreeInstance.getBF(node) : (bstTreeInstance.getHeight(node.left) - bstTreeInstance.getHeight(node.right));
+        const bfStr = bf > 0 ? `+${bf}` : `${bf}`;
+        const isHighlighted = highlightedSearchPath.includes(node.marks);
+        const isTarget = (targetFoundNodeMarks === node.marks);
+
+        let groupClass = "tree-node-group";
+        if (isTarget) groupClass += " node-target";
+        else if (isHighlighted) groupClass += " node-highlighted";
+
+        nodesHtml += `
+          <g class="${groupClass}" onclick="inspectNodeById(${node.id})">
+            <!-- Node Circle -->
+            <circle class="node-circle" cx="${node.x}" cy="${node.y}" r="25" fill="#ffffff" stroke="#2563eb" stroke-width="2.5" />
+            
+            <!-- MARKS DISPLAYED AS MAIN TREE KEY -->
+            <text x="${node.x}" y="${node.y + 4}" text-anchor="middle" fill="#0f172a" font-size="11" font-weight="700" font-family="'JetBrains Mono', monospace">${node.marks.toFixed(1)}%</text>
+            
+            <!-- Student First Name Label -->
+            <text x="${node.x}" y="${node.y + 36}" text-anchor="middle" fill="#1e293b" font-size="9.5" font-family="'Plus Jakarta Sans', sans-serif" font-weight="700">${node.data.name.split(' ')[0]}</text>
+            
+            <!-- Student Roll ID Label -->
+            <text x="${node.x}" y="${node.y + 48}" text-anchor="middle" fill="#64748b" font-size="8.5" font-family="'JetBrains Mono', monospace">ID: ${node.id}</text>
+            
+            <!-- Balance Factor Badge -->
+            <rect x="${node.x + 11}" y="${node.y - 26}" width="18" height="13" rx="3" fill="#d1fae5" stroke="#10b981" stroke-width="1" />
+            <text x="${node.x + 20}" y="${node.y - 16}" text-anchor="middle" fill="#065f46" font-size="8.5" font-weight="700" font-family="'JetBrains Mono', monospace">${bfStr}</text>
+          </g>
+        `;
+        buildNodes(node.left);
+        buildNodes(node.right);
+      }
+      buildNodes(activeTree.root);
+
+      svg.innerHTML = linesHtml + nodesHtml;
+    }
+
+    function inspectNodeById(id) {
+      const activeTree = (currentTreeArchitecture === 'AVL') ? avlTreeInstance : bstTreeInstance;
+      const all = activeTree.getInorderNodes();
+      const target = all.find(n => n.id === id);
+      if (target) inspectNodeByObject(target);
+    }
+
+    function inspectNodeByObject(node) {
+      const box = document.getElementById('nodeInspectorBox');
+      box.classList.remove('hidden');
+      document.getElementById('inspectNodeMarks').innerText = `Marks: ${node.marks.toFixed(2)}% (ID: ${node.id})`;
+      document.getElementById('inspectNodeName').innerText = `${node.data.name} &bull; ${node.data.dept}`;
+      document.getElementById('inspectNodeDetails').innerText = `Roll No: ${node.id} \u2022 Year ${node.data.year} \u2022 ${node.data.email}`;
+      document.getElementById('inspectNodeHeight').innerText = node.height;
+      
+      const bf = (currentTreeArchitecture === 'AVL') ? avlTreeInstance.getBF(node) : (bstTreeInstance.getHeight(node.left) - bstTreeInstance.getHeight(node.right));
+      document.getElementById('inspectNodeBF').innerText = bf > 0 ? `+${bf}` : `${bf}`;
+
+      const statusBadge = document.getElementById('inspectNodeStatus');
+      if (Math.abs(bf) <= 1) {
+        statusBadge.innerText = "BALANCED";
+        statusBadge.className = "px-2 py-1 rounded bg-emerald-100 text-emerald-800 font-semibold border border-emerald-300";
+      } else {
+        statusBadge.innerText = "IMBALANCED";
+        statusBadge.className = "px-2 py-1 rounded bg-rose-100 text-rose-800 font-semibold border border-rose-300";
+      }
+    }
+
+    function traceTreeSearchPath() {
+      const inputVal = parseFloat(document.getElementById('inputTraceSearch').value);
+      if (isNaN(inputVal) || inputVal < 0) {
+        alert("Please enter a valid numeric Marks value (e.g. 88.50) to trace tree traversal.");
+        return;
+      }
+
+      const activeTree = (currentTreeArchitecture === 'AVL') ? avlTreeInstance : bstTreeInstance;
+      let curr = activeTree.root;
+      highlightedSearchPath = [];
+      targetFoundNodeMarks = null;
+      let foundNode = null;
+      const steps = [];
+
+      while (curr) {
+        highlightedSearchPath.push(curr.marks);
+        // Compare with tolerance or direct equality
+        if (Math.abs(inputVal - curr.marks) < 0.05) {
+          steps.push(`Matched Marks ${curr.marks.toFixed(2)}% (${curr.data.name}, ID: ${curr.id})`);
+          targetFoundNodeMarks = curr.marks;
+          foundNode = curr;
+          break;
+        } else if (inputVal < curr.marks) {
+          steps.push(`${inputVal}% < ${curr.marks.toFixed(1)}% \u2192 Traverse Left Subtree`);
+          curr = curr.left;
+        } else {
+          steps.push(`${inputVal}% > ${curr.marks.toFixed(1)}% \u2192 Traverse Right Subtree`);
+          curr = curr.right;
+        }
+      }
+
+      const traceBox = document.getElementById('treeTraceBox');
+      traceBox.classList.remove('hidden');
+
+      if (foundNode) {
+        document.getElementById('treeTraceHeading').innerText = `Target Marks ${inputVal}% Found in ${highlightedSearchPath.length} comparison(s)! (O(log N))`;
+        document.getElementById('treeTraceSteps').innerText = steps.join(' \u2794 ');
+        appendLog(`[Tree Search Trace] Target Marks ${inputVal}% located in ${highlightedSearchPath.length} steps: ${highlightedSearchPath.map(m => m.toFixed(1) + '%').join(' \u2192 ')}`, 'text-cyan-300');
+        inspectNodeByObject(foundNode);
+      } else {
+        document.getElementById('treeTraceHeading').innerText = `Marks ${inputVal}% NOT FOUND after ${highlightedSearchPath.length} comparison(s)`;
+        document.getElementById('treeTraceSteps').innerText = steps.join(' \u2794 ') + ' \u2794 NULL';
+        appendLog(`[Tree Search Trace] Marks ${inputVal}% not found in tree. Traversed: ${highlightedSearchPath.map(m => m.toFixed(1) + '%').join(' \u2192 ')}`, 'text-rose-300');
+      }
+
+      renderTreeCanvas();
+    }
+
+    function clearTreeTrace() {
+      highlightedSearchPath = [];
+      targetFoundNodeMarks = null;
+      document.getElementById('treeTraceBox').classList.add('hidden');
+      renderTreeCanvas();
+    }
+
+    // --- 11. ADVANCED MARKS-KEYED ROTATION PLAYGROUND ---
+    function triggerRotationDemo(caseType) {
+      let demoStudents = [];
+      let explanation = "";
+
+      if (caseType === 'LL') {
+        // Descending marks cause Left-overload (LL)
+        demoStudents = [
+          { id: 301, name: "LL Node A", marks: 98.0, dept: "CSE", year: 1, email: "lla@college.edu" },
+          { id: 302, name: "LL Node B", marks: 84.0, dept: "CSE", year: 1, email: "llb@college.edu" },
+          { id: 303, name: "LL Node C", marks: 70.0, dept: "CSE", year: 1, email: "llc@college.edu" }
+        ];
+        explanation = "LL Case: Inserted marks 98% &rarr; 84% &rarr; 70% in descending order. Balance Factor at 98% became +2 (Left-heavy). Single Right-Rotation on pivot restored balance!";
+      } else if (caseType === 'RR') {
+        // Ascending marks cause Right-overload (RR)
+        demoStudents = [
+          { id: 304, name: "RR Node A", marks: 65.0, dept: "CSE", year: 1, email: "rra@college.edu" },
+          { id: 305, name: "RR Node B", marks: 78.0, dept: "CSE", year: 1, email: "rrb@college.edu" },
+          { id: 306, name: "RR Node C", marks: 91.0, dept: "CSE", year: 1, email: "rrc@college.edu" }
+        ];
+        explanation = "RR Case: Inserted marks 65% &rarr; 78% &rarr; 91% in ascending order. Balance Factor at 65% became -2 (Right-heavy). Single Left-Rotation on pivot restored balance!";
+      } else if (caseType === 'LR') {
+        demoStudents = [
+          { id: 307, name: "LR Node A", marks: 97.0, dept: "CSE", year: 1, email: "lra@college.edu" },
+          { id: 308, name: "LR Node B", marks: 69.0, dept: "CSE", year: 1, email: "lrb@college.edu" },
+          { id: 309, name: "LR Node C", marks: 83.0, dept: "CSE", year: 1, email: "lrc@college.edu" }
+        ];
+        explanation = "LR Case: Inserted marks 97% &rarr; 69% &rarr; 83%. Double rotation: Left-Rotate on 69%, then Right-Rotate on 97% restored balance!";
+      } else if (caseType === 'RL') {
+        demoStudents = [
+          { id: 310, name: "RL Node A", marks: 69.0, dept: "CSE", year: 1, email: "rla@college.edu" },
+          { id: 311, name: "RL Node B", marks: 97.0, dept: "CSE", year: 1, email: "rlb@college.edu" },
+          { id: 312, name: "RL Node C", marks: 83.0, dept: "CSE", year: 1, email: "rlc@college.edu" }
+        ];
+        explanation = "RL Case: Inserted marks 69% &rarr; 97% &rarr; 83%. Double rotation: Right-Rotate on 97%, then Left-Rotate on 69% restored balance!";
+      }
+
+      demoStudents.forEach(st => {
+        if (!students.some(s => s.id === st.id)) {
+          students.push(st);
+        }
+      });
+
+      saveToLocalStorage();
+      applyFilters();
+      renderTreeCanvas();
+
+      const banner = document.getElementById('rotationInfoBanner');
+      const text = document.getElementById('rotationInfoText');
+      banner.classList.remove('hidden');
+      text.innerHTML = `<strong>${caseType} Rotation (Keyed on Marks):</strong> ${explanation}`;
+
+      triggerAlert(`Executed ${caseType} Marks Rotation Demo! Tree rebalanced to height ${avlTreeInstance.getHeight(avlTreeInstance.root)}.`, 'success');
+      appendLog(`[AVL Marks Demo] ${explanation}`, 'text-emerald-400 font-bold');
+    }
+
+    // --- 12. HASH TABLE VIEW (KEYED ON ROLL NUMBER / UNIQUE ID) ---
+    function renderHashView() {
+      const grid = document.getElementById('hashBucketsGrid');
+      grid.innerHTML = '';
+
+      for (let i = 0; i < 11; i++) {
+        const bucketStudents = students.filter(s => (s.id % 11) === i);
+        const card = document.createElement('div');
+        card.id = `bucket-slot-${i}`;
+        card.className = "bg-slate-50 border border-slate-200 rounded-xl p-3.5 transition-all";
+        
+        let chainHtml = '';
+        if (bucketStudents.length === 0) {
+          chainHtml = `<span class="text-xs text-slate-400 font-mono italic">NULL (Empty bucket)</span>`;
+        } else {
+          chainHtml = bucketStudents.map(s => 
+            `<span class="inline-flex items-center px-2.5 py-1 rounded-md bg-white text-slate-800 text-xs font-mono border border-slate-300 shadow-2xs">
+               <strong>${s.id}</strong> <span class="text-slate-500 ml-1">(${s.name})</span>
+             </span>`
+          ).join('<i class="fa-solid fa-arrow-right text-slate-400 text-[10px] mx-1.5"></i>') + '<span class="text-xs text-slate-400 font-mono ml-1.5">&rarr; NULL</span>';
+        }
+
+        const hasCollision = bucketStudents.length > 1;
+
+        card.innerHTML = `
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-mono font-bold text-slate-700 bg-white px-2 py-0.5 rounded border border-slate-200">
+              Bucket Slot [${i < 10 ? '0' + i : i}]
+            </span>
+            <span class="text-[11px] text-slate-500 font-medium">
+              ${bucketStudents.length} Record(s) ${hasCollision ? '<span class="text-amber-700 font-bold bg-amber-100 px-1.5 py-0.2 rounded border border-amber-300">Collision Chain</span>' : ''}
+            </span>
+          </div>
+          <div class="flex items-center flex-wrap gap-1.5">${chainHtml}</div>
+        `;
+        grid.appendChild(card);
+      }
+    }
+
+    function testHashFunctionInteractive() {
+      const q = parseInt(document.getElementById('inputHashCalc').value);
+      if (isNaN(q) || q <= 0) {
+        alert("Please enter a valid positive ID to test hash calculation.");
+        return;
+      }
+
+      const bucket = q % 11;
+      const banner = document.getElementById('hashInteractiveBanner');
+      const text = document.getElementById('hashInteractiveText');
+      
+      banner.classList.remove('hidden');
+      text.innerHTML = `Calculation: <strong>h(${q}) = ${q} % 11 = Bucket #${bucket}</strong>`;
+
+      // Highlight target bucket
+      document.querySelectorAll('#hashBucketsGrid > div').forEach(c => c.classList.remove('ring-2', 'ring-amber-500', 'bg-amber-50'));
+      const targetCard = document.getElementById(`bucket-slot-${bucket}`);
+      if (targetCard) {
+        targetCard.classList.add('ring-2', 'ring-amber-500', 'bg-amber-50');
+        targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+
+      appendLog(`[Hash Function Test] Input ID ${q} mapped to Bucket #${bucket} (h(k) = k mod 11)`);
+    }
+
+    // --- 13. MERIT RANKING (MERGE SORT) ---
+    function renderMeritList(descending = true) {
+      const sorted = executeMergeSort([...students], !descending);
+      
+      // Update Podium
+      if (sorted.length > 0) {
+        document.getElementById('podiumName1').innerText = sorted[0].name;
+        document.getElementById('podiumScore1').innerText = `${sorted[0].marks.toFixed(2)}% \u2022 ID ${sorted[0].id} (${sorted[0].dept})`;
+      }
+      if (sorted.length > 1) {
+        document.getElementById('podiumName2').innerText = sorted[1].name;
+        document.getElementById('podiumScore2').innerText = `${sorted[1].marks.toFixed(2)}% \u2022 ID ${sorted[1].id} (${sorted[1].dept})`;
+      }
+      if (sorted.length > 2) {
+        document.getElementById('podiumName3').innerText = sorted[2].name;
+        document.getElementById('podiumScore3').innerText = `${sorted[2].marks.toFixed(2)}% \u2022 ID ${sorted[2].id} (${sorted[2].dept})`;
+      }
+
+      // Render Visual Bars
+      const container = document.getElementById('meritBarsContainer');
+      container.innerHTML = '';
+
+      sorted.forEach((s, idx) => {
+        const col = document.createElement('div');
+        col.className = "flex-1 flex flex-col items-center justify-end h-full group";
+        const heightPct = Math.max(20, s.marks);
+        col.innerHTML = `
+          <span class="text-[10px] font-mono font-bold text-slate-700 mb-1 group-hover:text-blue-700">${s.marks}%</span>
+          <div class="w-full rounded-t-md ${idx === 0 ? 'bg-amber-500 hover:bg-amber-600' : 'bg-blue-600 hover:bg-blue-700'} transition duration-300" style="height: ${heightPct}%;"></div>
+          <span class="text-[10px] text-slate-500 font-mono mt-1.5 truncate w-full text-center font-medium">${s.id}</span>
+        `;
+        container.appendChild(col);
+      });
+
+      // Render Merit Table
+      const tbody = document.getElementById('meritTableBody');
+      tbody.innerHTML = '';
+
+      sorted.forEach((s, idx) => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-50 transition";
+        const rankNum = idx + 1;
+        let rankBadge = `<span class="font-mono font-bold text-slate-700">#${rankNum}</span>`;
+        if (rankNum === 1) rankBadge = '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-amber-100 text-amber-900 border border-amber-300"><i class="fa-solid fa-trophy mr-1 text-amber-600"></i> Rank 1 (Gold)</span>';
+        else if (rankNum === 2) rankBadge = '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-slate-200 text-slate-800 border border-slate-300">Rank 2 (Silver)</span>';
+        else if (rankNum === 3) rankBadge = '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200">Rank 3 (Bronze)</span>';
+
+        tr.innerHTML = `
+          <td class="py-2.5 px-3">${rankBadge}</td>
+          <td class="py-2.5 px-3 font-mono font-bold text-slate-900">${s.id}</td>
+          <td class="py-2.5 px-3 font-medium text-slate-800">${s.name}</td>
+          <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-xs bg-slate-100 text-slate-700 font-semibold border border-slate-200">${s.dept}</span></td>
+          <td class="py-2.5 px-3 font-mono font-bold text-blue-700">${s.marks.toFixed(2)}%</td>
+          <td class="py-2.5 px-3 text-xs text-slate-500">${s.marks >= 90 ? 'First Class with Distinction' : 'First Class'}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      appendLog(`[Merit Ranking] Merge Sort rendered list (${descending ? 'Descending' : 'Ascending'})`);
+    }
+
+    // --- 14. C++ CODE MODAL INSPECTOR ---
+    function openCodeModal() {
+      displayCodeSnippet('AVL');
+      document.getElementById('codeModal').classList.remove('hidden');
+    }
+
+    function closeCodeModal() {
+      document.getElementById('codeModal').classList.add('hidden');
+    }
+
+    function displayCodeSnippet(snippetKey) {
+      document.querySelectorAll('#codeModal .flex button').forEach(btn => {
+        btn.classList.remove('bg-blue-600', 'text-white');
+        btn.classList.add('text-slate-600', 'hover:bg-slate-100');
+      });
+      const activeBtn = document.getElementById('codeTab-' + snippetKey);
+      activeBtn.classList.remove('text-slate-600', 'hover:bg-slate-100');
+      activeBtn.classList.add('bg-blue-600', 'text-white');
+
+      document.getElementById('codeSnippetBox').textContent = CXX_SNIPPETS[snippetKey];
+    }
+
+    // --- 15. FILE EXPORT & IMPORT ---
+    function exportStudentsFile() {
+      let content = students.map(s => `${s.id}|${s.name}|${s.dept}|${s.year}|${s.marks.toFixed(2)}|${s.email}`).join('\n');
+      const blob = new Blob([content], { type: 'text/plain' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'students.txt';
+      a.click();
+      triggerAlert("Exported records to 'students.txt' matching C++ storage format.", "success");
+      appendLog("[File Persistence] Exported all records to 'students.txt'");
+    }
+
+    function importStudentsFile(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const lines = e.target.result.split('\n');
+        const loaded = [];
+        lines.forEach(line => {
+          const parts = line.trim().split('|');
+          if (parts.length === 6) {
+            loaded.push({
+              id: parseInt(parts[0]),
+              name: parts[1],
+              dept: parts[2],
+              year: parseInt(parts[3]),
+              marks: parseFloat(parts[4]),
+              email: parts[5]
+            });
+          }
+        });
+
+        if (loaded.length > 0) {
+          students = loaded;
+          saveToLocalStorage();
+          applyFilters();
+          if (!document.getElementById('view-tree').classList.contains('hidden')) renderTreeCanvas();
+          triggerAlert(`Successfully imported ${loaded.length} student records from file!`, 'success');
+          appendLog(`[File Persistence] Loaded ${loaded.length} records into Marks-Keyed AVL Tree & Hash Table`, 'text-emerald-400 font-bold');
+        } else {
+          alert("Error: File format must be: ID|Name|Dept|Year|Marks|Email");
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function resetDefaultData() {
+      students = JSON.parse(JSON.stringify(DEFAULT_STUDENTS));
+      saveToLocalStorage();
+      applyFilters();
+      if (!document.getElementById('view-tree').classList.contains('hidden')) renderTreeCanvas();
+      triggerAlert("Reset to standard 8 college student records.", "info");
+      appendLog("[System] Restored default college student records (Keyed by Marks %)");
+    }
+
+    // Initialize View
+    applyFilters();
+  </script>
+</body>
+</html>
